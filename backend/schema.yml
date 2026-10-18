@@ -1,0 +1,255 @@
+openapi: 3.0.3
+info:
+  title: NDD Backend API
+  version: 1.0.0
+  description: API documentation for NDD Backend - One Login, Two UIs
+paths:
+  /api/token/:
+    post:
+      operationId: api_token_create
+      description: |-
+        Takes a set of user credentials and returns an access and refresh JSON web
+        token pair to prove the authentication of those credentials.
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPairRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenObtainPair'
+          description: ''
+  /api/token/refresh/:
+    post:
+      operationId: api_token_refresh_create
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+  /api/transactions/history/:
+    get:
+      operationId: api_transactions_history_list
+      description: List user's transactions.
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Transaction'
+          description: ''
+  /api/transactions/vend/:
+    post:
+      operationId: api_transactions_vend_create
+      description: |-
+        Initiate a vending transaction (e.g. buy airtime, data, electricity).
+        Requires the `Idempotency-Key` header.
+      parameters:
+      - in: header
+        name: Idempotency-Key
+        schema:
+          type: string
+        description: Unique key to prevent double charging
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VendRequestRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+components:
+  schemas:
+    StatusEnum:
+      enum:
+      - PENDING
+      - SUCCESS
+      - FAILED
+      type: string
+      description: |-
+        * `PENDING` - Pending
+        * `SUCCESS` - Success
+        * `FAILED` - Failed
+    TokenObtainPair:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+          readOnly: true
+      required:
+      - access
+      - refresh
+    TokenObtainPairRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          writeOnly: true
+          minLength: 1
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - password
+      - username
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+      required:
+      - access
+      - refresh
+    TokenRefreshRequest:
+      type: object
+      properties:
+        refresh:
+          type: string
+          minLength: 1
+      required:
+      - refresh
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        type:
+          $ref: '#/components/schemas/TransactionTypeEnum'
+        status:
+          allOf:
+          - $ref: '#/components/schemas/StatusEnum'
+          readOnly: true
+        target:
+          type: string
+          description: Phone, Meter, or Smartcard number
+          maxLength: 50
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - amount
+      - created_at
+      - id
+      - status
+      - target
+      - type
+      - updated_at
+    TransactionTypeEnum:
+      enum:
+      - AIRTIME
+      - DATA
+      - ELECTRICITY
+      - CABLE
+      - BROADBAND
+      - EDUCATION
+      - DEPOSIT
+      type: string
+      description: |-
+        * `AIRTIME` - Airtime
+        * `DATA` - Data
+        * `ELECTRICITY` - Electricity
+        * `CABLE` - Cable TV
+        * `BROADBAND` - Broadband
+        * `EDUCATION` - Education
+        * `DEPOSIT` - Deposit
+    VendRequestRequest:
+      type: object
+      description: Serializer for initiating a vend transaction.
+      properties:
+        amount:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        type:
+          $ref: '#/components/schemas/VendRequestTypeEnum'
+        target:
+          type: string
+          minLength: 1
+          maxLength: 50
+        provider_payload:
+          description: The raw payload required by the specific provider action.
+      required:
+      - amount
+      - provider_payload
+      - target
+      - type
+    VendRequestTypeEnum:
+      enum:
+      - AIRTIME
+      - DATA
+      - ELECTRICITY
+      - CABLE
+      - BROADBAND
+      - EDUCATION
+      type: string
+      description: |-
+        * `AIRTIME` - AIRTIME
+        * `DATA` - DATA
+        * `ELECTRICITY` - ELECTRICITY
+        * `CABLE` - CABLE
+        * `BROADBAND` - BROADBAND
+        * `EDUCATION` - EDUCATION
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

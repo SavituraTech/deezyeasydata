@@ -1,0 +1,14 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block extrahead %}
+  {{ block.super }}
+  <link rel="icon" type="image/png" href="{% static 'branding/favicon.png' %}">
+{% endblock %}
+
+{% block branding %}
+  <div id="site-name">
+    <img src="{% static 'branding/deezy-logo.png' %}" alt="Deezy Easy Data" style="height:36px;width:112px;object-fit:contain;vertical-align:middle;margin-right:8px;border-radius:6px;background:#fff;">
+    <span>Admin</span>
+  </div>
+{% endblock %}

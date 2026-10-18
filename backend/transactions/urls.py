@@ -1,0 +1,55 @@
+from django.urls import path
+from .views import (
+    VendAPIView,
+    TransactionListAPIView,
+    AdminTransactionListAPIView,
+    TransactionDetailAPIView,
+    AdminTransactionDetailAPIView,
+    AdminTransactionRefundAPIView,
+    AdminTransactionResolveView,
+    AdminBulkRefundView,
+    AdminAuditLogListView,
+    ProviderBalanceAPIView,
+    BuyAirtimeView,
+    BuyDataView,
+    BuyElectricityView,
+    BuyCableView,
+    BuyBroadbandView,
+    BuyEducationView,
+    VerifyMeterView,
+    VerifySmartcardView,
+    VerifyBroadbandView,
+    OrderStatusView,
+    AvailableServicesView,
+)
+
+urlpatterns = [
+    # Vending
+    path("vend/", VendAPIView.as_view(), name="vend"),
+    path("buy-airtime/", BuyAirtimeView.as_view(), name="buy_airtime"),
+    path("buy-data/", BuyDataView.as_view(), name="buy_data"),
+    path("buy-electricity/", BuyElectricityView.as_view(), name="buy_electricity"),
+    path("buy-cable/", BuyCableView.as_view(), name="buy_cable"),
+    path("buy-broadband/", BuyBroadbandView.as_view(), name="buy_broadband"),
+    path("buy-education/", BuyEducationView.as_view(), name="buy_education"),
+    path("verify-electricity/", VerifyMeterView.as_view(), name="verify_electricity"),
+    path("verify-meter/", VerifyMeterView.as_view(), name="verify_meter"),
+    path("verify-cable/", VerifySmartcardView.as_view(), name="verify_cable"),
+    path("verify-smartcard/", VerifySmartcardView.as_view(), name="verify_smartcard"),
+    path("verify-broadband/", VerifyBroadbandView.as_view(), name="verify_broadband"),
+    # History
+    path("history/", TransactionListAPIView.as_view(), name="history"),
+    path("history/<int:pk>/", TransactionDetailAPIView.as_view(), name="history_detail"),
+    # Admin
+    path("admin/", AdminTransactionListAPIView.as_view(), name="admin_list"),
+    path("admin/<int:pk>/", AdminTransactionDetailAPIView.as_view(), name="admin_detail"),
+    path("admin/<int:pk>/refund/", AdminTransactionRefundAPIView.as_view(), name="admin_refund"),
+    path("admin/<int:pk>/resolve/", AdminTransactionResolveView.as_view(), name="admin_resolve"),
+    path("admin/bulk-refund/", AdminBulkRefundView.as_view(), name="admin_bulk_refund"),
+    path("admin/audit-log/", AdminAuditLogListView.as_view(), name="admin_audit_log"),
+    # Status & services (no version)
+    path("provider-balance/", ProviderBalanceAPIView.as_view(), name="provider_balance"),
+    path("order-status/<int:pk>/", OrderStatusView.as_view(), name="order_status"),
+    path("services/", AvailableServicesView.as_view(), name="available_services"),
+    path("available-services/", AvailableServicesView.as_view(), name="available_services_alias"),
+]

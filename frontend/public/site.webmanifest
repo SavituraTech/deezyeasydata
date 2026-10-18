@@ -1,0 +1,20 @@
+{
+  "name": "Deezy Easy Data",
+  "short_name": "Deezy Easy Data",
+  "description": "Pay with ease, live with peace",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#0A2540",
+  "background_color": "#F6F9FC",
+  "display": "standalone"
+}
