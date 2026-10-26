@@ -119,6 +119,23 @@ class PayVesselVirtualAccountCreditWebhookTests(TestCase):
             2,
         )
 
+    def test_reserved_account_transfer_payload_credits_wallet(self):
+        """PayVessel's bank-transfer webhook has no event/status field."""
+        payload = {
+            "transaction": {"reference": "PV-TRANSFER-1"},
+            "order": {"amount": "200.0", "settlement_amount": "170.0"},
+            "virtualAccount": {"virtualAccountNumber": ACCOUNT_NUMBER, "virtualBank": "120001"},
+            "message": "Success",
+            "code": "00",
+        }
+
+        response = self._post(payload)
+
+        self.assertEqual(response.status_code, 200, response.content)
+        transaction = Transaction.objects.get(provider_reference="PV-TRANSFER-1")
+        self.assertEqual(transaction.status, TransactionStatus.SUCCESS)
+        self.assertEqual(transaction.amount, Decimal("200.00"))
+
     def test_missing_reference_is_rejected(self):
         payload = _va_payload()
         del payload["transaction"]["reference"]

@@ -310,8 +310,9 @@ class PayVesselWebhookView(APIView):
         https://<your-domain>/api/integrations/payvessel/webhook/
 
     Security (per https://docs.payvessel.com/api-reference/webhook/verifying-webhooks):
-    - Source IP is checked against PAYVESSEL_TRUSTED_IPS and rejected by default;
-      PAYVESSEL_ENFORCE_IP_ALLOWLIST=False is an explicit compatibility override.
+    - Source IP is checked against PAYVESSEL_TRUSTED_IPS and logged by default.
+      It is rejected only when PAYVESSEL_ENFORCE_IP_ALLOWLIST=True and the
+      deployment has an explicitly trusted proxy boundary.
     - Signature: HMAC-SHA512 of the raw body keyed with the PayVessel secret
       (``PVSECRET-``), compared against the ``payvessel-http-signature`` header
       (``HTTP_PAYVESSEL_HTTP_SIGNATURE`` in ``request.META``).
@@ -332,7 +333,7 @@ class PayVesselWebhookView(APIView):
 
     @staticmethod
     def _client_ip(request) -> str:
-        proxies = int(getattr(settings, "PAYVESSEL_TRUSTED_PROXY_COUNT", 1))
+        proxies = max(0, int(getattr(settings, "PAYVESSEL_TRUSTED_PROXY_COUNT", 0)))
         forwarded = request.META.get("HTTP_X_FORWARDED_FOR", "")
         if proxies > 0 and forwarded:
             hops = [h.strip() for h in forwarded.split(",") if h.strip()]
@@ -357,7 +358,7 @@ class PayVesselWebhookView(APIView):
         client = get_client("payvessel")
         verify = not getattr(settings, "PAYVESSEL_SKIP_WEBHOOK_VERIFY", False)
 
-        enforce_ip = getattr(settings, "PAYVESSEL_ENFORCE_IP_ALLOWLIST", True)
+        enforce_ip = getattr(settings, "PAYVESSEL_ENFORCE_IP_ALLOWLIST", False)
         if verify and enforce_ip and not self._ip_allowed(request):
             # Diagnostics: show the whole chain and whether the signature is genuine, so
             # an IP-list mismatch (PayVessel changed IPs) can be told apart from a forgery.

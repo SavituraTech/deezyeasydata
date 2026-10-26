@@ -8,7 +8,7 @@
     "numReplicas": 1,
     "sleepApplication": false,
     "preDeployCommand": "python manage.py migrate && python manage.py collectstatic --noinput",
-    "startCommand": "gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 3 --timeout 120 --access-logfile - --error-logfile -",
+    "startCommand": "sh -c 'python manage.py process_payvessel_webhooks --loop 60 & exec gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 3 --timeout 120 --access-logfile - --error-logfile -'",
     "healthcheckPath": "/health/",
     "healthcheckTimeout": 300,
     "restartPolicyType": "ON_FAILURE",

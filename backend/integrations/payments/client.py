@@ -533,6 +533,18 @@ class PayVesselClient:
         )
         if isinstance(status_val, bool):
             status_val = "success" if status_val else "failed"
+        # Reserved-account transfer callbacks use ``message``/``code`` rather
+        # than the checkout transaction status fields.  Only accept the
+        # documented success code (or an explicit success message) here; an
+        # arbitrary message must never turn into a wallet credit.
+        if not status_val:
+            message_status = str(data.get("message") or "").strip().lower()
+            if str(data.get("code") or "").strip() == "00" or message_status in {
+                "success",
+                "successful",
+                "completed",
+            }:
+                status_val = "success"
         amount = (
             order.get("amount")
             or transaction.get("amount")
@@ -547,6 +559,10 @@ class PayVesselClient:
         receiver_account_number = (
             data.get("accountNumber")
             or data.get("account_number")
+            or (data.get("virtualAccount") or {}).get("virtualAccountNumber")
+            or (data.get("virtualAccount") or {}).get("accountNumber")
+            or (data.get("virtual_account") or {}).get("virtual_account_number")
+            or (data.get("virtual_account") or {}).get("account_number")
             or transaction.get("account_number")
             or transaction.get("accountNumber")
             or (data.get("receiver") or {}).get("account_number")
@@ -574,6 +590,8 @@ class PayVesselClient:
             or (banks_obj.get("trackingReference") if isinstance(banks_obj, dict) else None)
             or metadata.get("trackingReference")
             or metadata.get("tracking_reference")
+            or ((data.get("virtualAccount") or {}).get("trackingReference"))
+            or ((data.get("virtual_account") or {}).get("tracking_reference"))
         )
 
         # Event name wins for success determination (transaction.success etc.)

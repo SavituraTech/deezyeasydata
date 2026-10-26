@@ -315,10 +315,15 @@ class WalletService:
         full_name = (
             getattr(user, "get_full_name", lambda: user.username)() or user.username
         ).strip()
+        # Registration accepts both international and local Nigerian formats,
+        # while PayVessel's reserved-account API requires an 11-digit local
+        # number (for example, 08012345678).
+        from common.helpers import normalize_phone
+        payvessel_phone = normalize_phone(getattr(user, "phone", "") or "")
         result = payvessel_va.create_virtual_account(
             email=user.email or f"{user.username}@deezyeasydata.example.com",
             name=full_name.upper(),
-            phone_number=getattr(user, "phone", "") or "",
+            phone_number=payvessel_phone,
             bank_codes=bank_codes,
             account_type=account_type,
             bvn=bvn,

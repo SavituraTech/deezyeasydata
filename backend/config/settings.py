@@ -324,14 +324,15 @@ PAYVESSEL_TRUSTED_IPS = [
 # Skip webhook IP + signature checks. Local testing only; deliberately NOT tied
 # to DEBUG so a stray DEBUG=True in production cannot open the endpoint.
 PAYVESSEL_SKIP_WEBHOOK_VERIFY = os.getenv("PAYVESSEL_SKIP_WEBHOOK_VERIFY", "False").lower() in ("true", "1", "yes")
-# PayVessel's documentation requires both signature verification and source-IP
-# allowlisting. This may be disabled explicitly for a controlled proxy setup, but
-# production defaults to the documented secure behaviour.
-PAYVESSEL_ENFORCE_IP_ALLOWLIST = os.getenv("PAYVESSEL_ENFORCE_IP_ALLOWLIST", "True").lower() in ("true", "1", "yes")
-# Number of trusted reverse proxies in front of the app. The client IP is taken
-# from the Nth entry from the right of X-Forwarded-For (left entries are
-# client-controlled). Set to 0 to ignore X-Forwarded-For and use REMOTE_ADDR.
-PAYVESSEL_TRUSTED_PROXY_COUNT = int(os.getenv("PAYVESSEL_TRUSTED_PROXY_COUNT", "1"))
+# HMAC authenticates the webhook. Source-IP allowlisting is advisory by default
+# because managed ingress/proxies can obscure PayVessel's source address; enable
+# it only after configuring an explicit trusted proxy boundary.
+PAYVESSEL_ENFORCE_IP_ALLOWLIST = os.getenv("PAYVESSEL_ENFORCE_IP_ALLOWLIST", "False").lower() in ("true", "1", "yes")
+# Number of explicitly trusted reverse proxies in front of the app. The client
+# IP is taken from the Nth entry from the right of X-Forwarded-For (left entries
+# are client-controlled). Default to 0 until the deployment proxy is confirmed
+# to strip client-supplied forwarded headers.
+PAYVESSEL_TRUSTED_PROXY_COUNT = int(os.getenv("PAYVESSEL_TRUSTED_PROXY_COUNT", "0"))
 # Re-confirm checkout payments with GET /pms/transactions/{ref}/confirm/ before crediting.
 PAYVESSEL_VERIFY_BEFORE_CREDIT = os.getenv("PAYVESSEL_VERIFY_BEFORE_CREDIT", "True").lower() in ("true", "1", "yes")
 # Same check for reserved-account (virtual account) transfers. Off by default because the

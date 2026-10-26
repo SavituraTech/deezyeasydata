@@ -73,6 +73,17 @@ class AdminCreateVirtualAccountTests(TestCase):
         self.assertEqual(resp.data["account_number"], "1234567890")
 
     @patch("integrations.payments.payvessel_va.create_virtual_account")
+    def test_normalizes_international_phone_for_payvessel(self, mock_create):
+        mock_create.return_value = _pv_result()
+        self.customer.phone = "+2348012345678"
+        self.customer.save(update_fields=["phone"])
+
+        resp = self.client.post(self.url, {"provider": "PAYVESSEL"}, format="json")
+
+        self.assertEqual(resp.status_code, 200, resp.data)
+        self.assertEqual(mock_create.call_args.kwargs["phone_number"], "08012345678")
+
+    @patch("integrations.payments.payvessel_va.create_virtual_account")
     def test_second_call_reuses_existing_account(self, mock_create):
         mock_create.return_value = _pv_result()
 
