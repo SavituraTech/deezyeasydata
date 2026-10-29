@@ -1,4 +1,4 @@
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000").replace(/\/$/, "");
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || (process.env.NODE_ENV === "production" ? "https://api.deezyeasydata.com" : "http://localhost:8000")).replace(/\/$/, "");
 
 import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from "@/lib/roles";
 
