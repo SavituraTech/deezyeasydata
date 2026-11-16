@@ -240,6 +240,34 @@ class PayVesselCheckoutReconciliationTests(TestCase):
         self.assertIsNone(self.txn.error_code)
         self.assertTrue(Wallet.objects.filter(user=self.user).exists())
 
+    def test_external_reference_matches_pending_deposit(self):
+        self.txn.provider_reference = "PAY_EXT1"
+        self.txn.save(update_fields=["provider_reference"])
+        payload = {
+            "transaction": {
+                "reference": "SESSION-ID-1",
+                "external_reference": "PAY_EXT1",
+            },
+            "order": {"amount": "1500"},
+            "virtualAccount": {"virtualAccountNumber": "0000000000"},
+            "message": "Success",
+            "code": "00",
+        }
+        verified = PaymentVerificationResult(
+            success=True, status="success", amount=1500, currency="NGN",
+            payment_reference="PAY_EXT1",
+        )
+        with patch(
+            "integrations.payments.client.PayVesselClient.verify_payment",
+            return_value=verified,
+        ):
+            resp = self.client.post(
+                WEBHOOK_URL, data=json.dumps(payload), content_type="application/json"
+            )
+        self.assertEqual(resp.status_code, 200, resp.content)
+        self.txn.refresh_from_db()
+        self.assertEqual(self.txn.status, TransactionStatus.SUCCESS)
+
     def test_success_verification_without_amount_fails_closed(self):
         verified = PaymentVerificationResult(
             success=True,

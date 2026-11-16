@@ -56,6 +56,7 @@ class WebhookResult:
     tracking_reference: Optional[str] = None
     settlement_amount: Optional[float] = None
     fee: Optional[float] = None
+    external_reference: Optional[str] = None
 
 
 class PaymentPointClient:
@@ -524,6 +525,11 @@ class PayVesselClient:
             or metadata.get("payment_reference")
             or metadata.get("order_id")
         )
+        # Our own checkout reference, echoed back by PayVessel. ``reference`` may be
+        # PayVessel's session id, so this is used to find the pending deposit.
+        external_reference = transaction.get("external_reference") or data.get(
+            "external_reference"
+        )
         status_val = (
             transaction.get("status")
             or order.get("status")
@@ -624,6 +630,7 @@ class PayVesselClient:
             settlement_amount=_to_float(settlement_amount),
             fee=_to_float(fee),
             payment_reference=str(payment_reference) if payment_reference else None,
+            external_reference=str(external_reference) if external_reference else None,
             amount=amount_float,
             status=str(status_val) if status_val else None,
             receiver_account_number=str(receiver_account_number) if receiver_account_number else None,

@@ -76,6 +76,22 @@ def process_result(result) -> Outcome:
 
     is_success = (result.status or "").strip().lower() in SUCCESS_STATUSES
 
+    # PayVessel may put its own session id in ``reference`` and echo our checkout
+    # reference in ``external_reference``. If the pending deposit is stored under
+    # ours, use that so it is found, verified and credited.
+    external_reference = getattr(result, "external_reference", None)
+    if (
+        external_reference
+        and external_reference != payment_reference
+        and not Transaction.objects.filter(
+            type=TransactionType.DEPOSIT, provider_reference=payment_reference
+        ).exists()
+        and Transaction.objects.filter(
+            type=TransactionType.DEPOSIT, provider_reference=external_reference
+        ).exists()
+    ):
+        payment_reference = external_reference
+
     deposits = Transaction.objects.filter(
         type=TransactionType.DEPOSIT, provider_reference=payment_reference
     )
