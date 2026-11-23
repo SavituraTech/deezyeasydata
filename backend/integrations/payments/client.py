@@ -471,10 +471,9 @@ class PayVesselClient:
             if amount is not None:
                 try:
                     amount_float = float(amount)
-                    # PayVessel documents verification amounts in the smallest
-                    # currency unit. Keep the setting as an escape hatch for a
-                    # legacy account whose live response contract differs.
-                    if getattr(settings, "PAYVESSEL_VERIFY_AMOUNT_IN_KOBO", True):
+                    # PayVessel's live NGN confirm endpoint returns amounts in Naira.
+                    # Keep the setting as an escape hatch if an account returns kobo.
+                    if getattr(settings, "PAYVESSEL_VERIFY_AMOUNT_IN_KOBO", False):
                         amount_float /= 100.0
                 except (TypeError, ValueError):
                     pass

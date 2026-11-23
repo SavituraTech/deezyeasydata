@@ -338,8 +338,8 @@ PAYVESSEL_VERIFY_BEFORE_CREDIT = os.getenv("PAYVESSEL_VERIFY_BEFORE_CREDIT", "Tr
 # Same check for reserved-account (virtual account) transfers. Off by default because the
 # confirm endpoint is documented for checkout references; enable once confirmed in sandbox.
 PAYVESSEL_VERIFY_VA_CREDITS = os.getenv("PAYVESSEL_VERIFY_VA_CREDITS", "False").lower() in ("true", "1", "yes")
-# The confirm endpoint documents amounts in the "smallest currency unit" (kobo).
-PAYVESSEL_VERIFY_AMOUNT_IN_KOBO = os.getenv("PAYVESSEL_VERIFY_AMOUNT_IN_KOBO", "True").lower() in ("true", "1", "yes")
+# Set True only if PayVessel's confirm endpoint returns amounts in kobo; live NGN responses return Naira.
+PAYVESSEL_VERIFY_AMOUNT_IN_KOBO = os.getenv("PAYVESSEL_VERIFY_AMOUNT_IN_KOBO", "False").lower() in ("true", "1", "yes")
 # Credit the customer with order.settlement_amount (net of PayVessel's fee) instead of order.amount.
 PAYVESSEL_CREDIT_SETTLEMENT_AMOUNT = os.getenv("PAYVESSEL_CREDIT_SETTLEMENT_AMOUNT", "False").lower() in ("true", "1", "yes")
 # Store verified webhooks and process them in the background (with retries) so the

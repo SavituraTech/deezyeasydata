@@ -637,3 +637,34 @@ class PayVesselVerificationAmountTests(TestCase):
         self.assertTrue(result.success)
         self.assertEqual(result.amount, 1500.0)
         self.assertEqual(result.payment_reference, "TXN-1")
+
+    @override_settings(
+        PAYVESSEL_API_KEY="PVKEY-test",
+        PAYVESSEL_SECRET="PVSECRET-test",
+        PAYVESSEL_VERIFY_AMOUNT_IN_KOBO=False,
+    )
+    def test_naira_amount_is_preserved_when_kobo_setting_is_false(self):
+        from integrations.payments.client import PayVesselClient
+
+        class Resp:
+            status_code = 200
+
+            @staticmethod
+            def json():
+                return {
+                    "status": "success",
+                    "message": "Transaction verification successful",
+                    "data": {
+                        "reference": "TXN-2",
+                        "amount": 500,
+                        "currency": "NGN",
+                        "status": "success",
+                    },
+                }
+
+        with patch("integrations.payments.client.requests.get", return_value=Resp()):
+            result = PayVesselClient().verify_payment("TXN-2")
+
+        self.assertTrue(result.success)
+        self.assertEqual(result.amount, 500.0)
+        self.assertEqual(result.payment_reference, "TXN-2")
